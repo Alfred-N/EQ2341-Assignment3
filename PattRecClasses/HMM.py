@@ -71,7 +71,7 @@ class HMM:
         """
         
         #*** Insert your own code here and remove the following error message 
-        S = mc.rand(nSamples)
+        S = self.stateGen.rand(nSamples)
         X = np.zeros([len(S[0]),self.dataSize])
 
         for i,s in enumerate(S[0]):

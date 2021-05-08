@@ -1,5 +1,6 @@
 import numpy as np
-#from .DiscreteD import DiscreteD
+from .DiscreteD import DiscreteD
+
 
 class MarkovChain:
     """
@@ -14,22 +15,23 @@ class MarkovChain:
     coded as nStates+1.
     The sequence generation stops at S(T), if S(T+1)=(nStates+1)
     """
+
     def __init__(self, initial_prob, transition_prob):
 
-        self.q = initial_prob  #InitialProb(i)= P[S(1) = i]
-        
-        self.A = transition_prob #TransitionProb(i,j)= P[S(t)=j | S(t-1)=i]
+        self.q = initial_prob  # InitialProb(i)= P[S(1) = i]
 
+        self.A = transition_prob  # TransitionProb(i,j)= P[S(t)=j | S(t-1)=i]
 
         self.nStates = transition_prob.shape[0]
 
         self.is_finite = False
         if self.A.shape[0] != self.A.shape[1]:
             self.is_finite = True
-            extra_row = [np.eye(self.A.shape[1])[self.A.shape[1]-1]]
-            self.A = np.concatenate((self.A, extra_row),axis=0)
-            self.q = np.concatenate((self.q,[[0]]),axis=1)
+            extra_row = [np.eye(self.A.shape[1])[self.A.shape[1] - 1]]
+            self.A = np.concatenate((self.A, extra_row), axis=0)
+            self.q = np.concatenate((self.q, [[0]]), axis=1)
             self.nStates = self.nStates + 1
+            print(self.A)
 
     def probDuration(self, tmax):
         """
@@ -42,11 +44,11 @@ class MarkovChain:
         pD = np.zeros(tmax)
 
         if self.is_finite:
-            pSt = (np.eye(self.nStates)-self.A.T)@self.q
+            pSt = (np.eye(self.nStates) - self.A.T) @ self.q
 
             for t in range(tmax):
                 pD[t] = np.sum(pSt)
-                pSt = self.A.T@pSt
+                pSt = self.A.T @ pSt
 
         return pD
 
@@ -57,8 +59,8 @@ class MarkovChain:
         """
         t = np.arange(tmax).reshape(1, -1)
         aii = np.diag(self.A).reshape(-1, 1)
-        
-        logpD = np.log(aii)*t+ np.log(1-aii)
+
+        logpD = np.log(aii) * t + np.log(1 - aii)
         pD = np.exp(logpD)
 
         return pD
@@ -67,8 +69,8 @@ class MarkovChain:
         """
         Expected value of number of time samples spent in each state
         """
-        return 1/(1-np.diag(self.A))
-    
+        return 1 / (1 - np.diag(self.A))
+
     def rand(self, tmax):
         """
         S=rand(self, tmax) returns a random state sequence from given MarkovChain object.
@@ -88,43 +90,42 @@ class MarkovChain:
         If mc has FINITE duration,
            length(S) <= tmaxs
         """
-        #t_rand = np.random.randint(1,high=tmax,size=1,dtype=int)
-        #*** Insert your own code here and remove the following error message 
-        
-        if self.is_finite==False:
-          S=np.zeros([1,tmax],dtype=int)
-          S[0][0] = DiscreteD(self.q[0]).rand(1)
-          pS_t=self.q
-          for i in range(1,tmax):
-            #print(S.dtype)
-            #pS_t = np.dot(pS_t,self.A)
-            S[0][i] = int(DiscreteD(self.A[S[0,i-1],:]).rand(1))
-          return S
-        
+        # t_rand = np.random.randint(1,high=tmax,size=1,dtype=int)
+        # *** Insert your own code here and remove the following error message
+
+        if self.is_finite == False:
+            S = np.zeros([1, tmax], dtype=int)
+            S[0][0] = DiscreteD(self.q[0]).rand(1)
+            for i in range(1, tmax):
+                # print(S.dtype)
+                # pS_t = np.dot(pS_t,self.A)
+                S[0][i] = int(DiscreteD(self.A[S[0, i - 1], :]).rand(1))
+            return S
+
         elif self.is_finite:
-          S=[[int(0)]]
-          S[0][0] = int(DiscreteD(self.q[0]).rand(1))
-          pS_t=self.q
-          for i in range(1,tmax):
-            pS_t = np.dot(pS_t,self.A)
-            #s_t= np.random.choice(np.arange(self.nStates,dtype=int),size=None, p=pS_t[0])
-            s_t = DiscreteD(pS_t[0]).rand(1)
-            if s_t == self.nStates-1:
-              break
-            else:
-               S[0].append(s_t) 
-          return S
-                
+
+            S = np.array([[int(0)]])
+
+            S[0][0] = int(DiscreteD(self.q[0]).rand(1))
+            for i in range(1, tmax):
+
+                s_t = int(DiscreteD(self.A[S[0, i - 1], :]).rand(1))
+                if s_t == self.nStates - 1:
+                    break
+                else:
+                    S = np.concatenate((S, np.array([[s_t]])), axis=1)
+                    # S[0].append(s_t)
+            return S
 
     def viterbi(self):
         pass
-    
+
     def stationaryProb(self):
         pass
-    
+
     def stateEntropyRate(self):
         pass
-    
+
     def setStationary(self):
         pass
 
@@ -136,31 +137,40 @@ class MarkovChain:
 
     def initLeftRight(self):
         pass
-    
+
     def initErgodic(self):
         pass
 
-    def forward(self,logP):
-        T = len(logP[0,:]) 
-        if self.is_finite == True:
-            logP = np.concatenate((logP,np.zeros([1,T])),axis=0)
-        
-        N= len(logP) #num states
-        
-        alpha = np.zeros([N,T])
-        
-        alpha[:,0] = np.multiply(self.q,logP[:,0])
-        
-        for t in range(1,T):
-            alpha_a_product = np.dot(self.A,alpha[:,t-1])
-            b_kt = logP[:,t]
-            alpha[:,t] = np.multiply(b_kt,alpha_a_product)
-        
-        return alpha
+    def forward(self, P):
+        T = len(P[0, :])
+        if self.is_finite:
+            P = np.concatenate((P, np.zeros([1, T])), axis=0)
+            norms = np.zeros([T + 1, 1])
+        else:
+            norms = np.zeros([T, 1])
+
+        N = len(P)  # num states
+        alpha = np.zeros([N, T])
+        alpha_hat = np.zeros(np.shape(alpha))
+
+        alpha[:, 0] = np.multiply(self.q, P[:, 0])
+        alpha_hat[:, 0], norms[0, 0] = self.normalize(alpha[:, 0])
+
+        for t in range(1, T):
+            alpha_a_product = np.dot(self.A.transpose(), alpha_hat[:, t - 1])
+            b_kt = P[:, t]
+            alpha[:, t] = np.multiply(b_kt, alpha_a_product)
+            alpha_hat_t, norms_t = self.normalize(alpha[:, t])
+            alpha_hat[:, t] = alpha_hat_t
+            norms[t, 0] = norms_t
+        if self.is_finite:
+            norms[T,0] = np.dot(self.A.transpose()[N-1,:], alpha_hat[:,t])
+
+        return alpha_hat, norms
 
     def finiteDuration(self):
         pass
-    
+
     def backward(self):
         pass
 
@@ -172,3 +182,9 @@ class MarkovChain:
 
     def adaptAccum(self):
         pass
+
+    def normalize(self, alpha_temp):
+
+        norm = np.sum(alpha_temp)
+        alpha_hat = alpha_temp / norm
+        return alpha_hat, norm

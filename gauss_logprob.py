@@ -13,6 +13,7 @@ logP=  array with log-probability values for each element in x,
        size(p)== [length(pDs),size(x,2)], if pDs is one-dimensional vector
        size(p)== [size(pDs),size(x,2)], if pDs is multidim array
 '''
+import numpy as np
 def gauss_logprob(pDs, x):
     nObj = len(pDs) # Number of GaussD Objects
     nx = x.shape[1] # Number of observed vectors
@@ -30,24 +31,3 @@ def gauss_logprob(pDs, x):
         logP[i, :] = logP[i, :] - sum(np.log(pD.stdevs)) - dSize*np.log(2*np.pi)/2
 
     return logP
-
-
-## TESTCASES
-
-# One-dimensional Gaussian
-g1 = GaussD( means=np.array( [0] ) , stdevs=np.array( [1.0] ) )
-gauss_prob([g1], g1.rand(1))
-
-# Output: array([[-1.17657582]])
-
-# Multi-dimensional Gaussian
-g1 = GaussD( means=np.array( [[0.0], [1.0]] ) , cov=np.array( [[1.0, 0.0], [0.0, 1.0]] ) )
-gauss_prob([g1], g1.rand(3))
-
-# Output: array([[-1.86376038, -2.74915905, -2.73003471]])
-
-# Mismatched Parameters
-g2 = GaussD( means=np.array( [[3.0], [0.0]] ) , cov=np.array( [[1.0, 0.5], [0.5, 1.0]] ) )
-gauss_prob([g2], g1.rand(3))
-
-# Output: array([[-11.66457869,  -3.23578104,  -4.46681203]])
