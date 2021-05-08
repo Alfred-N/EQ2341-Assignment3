@@ -95,8 +95,10 @@ class HMM:
     def setStationary(self):
         pass
 
-    def logprob(self):
-        pass
+    def logprob(self, P):
+        alpha_hat, norms = self.stateGen.forward(P)
+        logP_sequence = np.sum(np.log(norms[:, 0]), axis=0)
+        return logP_sequence
 
     def adaptStart(self):
         pass
