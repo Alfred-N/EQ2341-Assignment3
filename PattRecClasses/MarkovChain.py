@@ -171,8 +171,32 @@ class MarkovChain:
     def finiteDuration(self):
         pass
 
-    def backward(self):
-        pass
+    def backward(self, x_seq, P, norms):
+        T = len(P[0, :])
+        if self.is_finite:
+            P = np.concatenate((P, np.zeros([1, T])), axis=0)
+        N = len(P)
+
+        beta = np.zeros([N, T])
+        beta_hat = np.zeros(np.shape(beta))
+
+        #initializing
+        if self.is_finite:
+            A_T_temp = np.copy(self.A[:, N-1])
+            A_T_temp[N-1] = 0
+            beta[:, T - 1] = A_T_temp
+            beta_hat[:, T-1] = beta[:, T-1]/np.dot(norms[T, 0], norms[T-1, 0])
+        else:
+            beta[:, T-1] = np.ones([N, 1]).ravel()
+            beta_hat[:, T-1] = beta[:, T-1] / norms[T-1, 0]
+
+
+        for t in range (T-2, -1, -1):
+            print(t)
+            b_beta_prod = np.multiply(P[:, t+1], beta_hat[:, t+1]).reshape([N, 1])
+            test = self.A
+            beta_hat[:, t] = (np.dot(self.A, b_beta_prod) / norms[t, 0]).ravel()
+        return beta_hat
 
     def adaptStart(self):
         pass
