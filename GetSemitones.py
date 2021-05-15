@@ -14,14 +14,14 @@ def GetSemitones(frIsequence):
   r = frIsequence[1]
 
   noise = np.zeros(np.shape(f))
-  print(noise.shape)
+  #print(noise.shape)
   for i in range(len(f)):
     if f_log[i]>f_max or f_log[i]<f_min or (r[i]<r_thresh and log_I[i]<I_thresh):
       noise[i] = 1
   #f_clean = f_log[np.where(noise==0)]
   f_clean = f[np.where(noise==0)]
   base_freq=np.min(f_clean)
-  print(base_freq)
+  #print(base_freq)
   semitones = 12*np.log2(f/base_freq) + 1
 
   for i in range(len(noise)):

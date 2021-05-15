@@ -31,7 +31,7 @@ class MarkovChain:
             self.A = np.concatenate((self.A, extra_row), axis=0)
             self.q = np.concatenate((self.q, [[0]]), axis=1)
             self.nStates = self.nStates + 1
-            print(self.A)
+            #print(self.A)
 
     def probDuration(self, tmax):
         """
@@ -192,7 +192,7 @@ class MarkovChain:
 
 
         for t in range (T-2, -1, -1):
-            print(t)
+            #print(t)
             b_beta_prod = np.multiply(P[:, t+1], beta_hat[:, t+1]).reshape([N, 1])
             test = self.A
             beta_hat[:, t] = (np.dot(self.A, b_beta_prod) / norms[t, 0]).ravel()
@@ -212,3 +212,15 @@ class MarkovChain:
         norm = np.sum(alpha_temp)
         alpha_hat = alpha_temp / norm
         return alpha_hat, norm
+
+    def condStateProb(self, alpha_hat, beta_hat, norms):
+        T = len(alpha_hat[0])
+        gamma = np.zeros([self.nStates, T])
+        a = alpha_hat
+        b = beta_hat
+        n = norms
+
+        for t in range(T):
+            gamma[:, t] = np.multiply(alpha_hat[:, t],beta_hat[:, t])*norms[t]
+        return gamma
+
